@@ -3,6 +3,6 @@
   <PropertyGroup>
     <Controller_SelectedScaffolderID>ApiControllerWithActionsScaffolder</Controller_SelectedScaffolderID>
     <Controller_SelectedScaffolderCategoryPath>root/Common/Api</Controller_SelectedScaffolderCategoryPath>
-    <NameOfLastUsedPublishProfile>D:\SBPune\GITCODE\GITOps\DataProviderAPI\Properties\PublishProfiles\DataProviderAPI - Web Deploy.pubxml</NameOfLastUsedPublishProfile>
+    <NameOfLastUsedPublishProfile>D:\SBPune\GITCODE\GITOps\.github\workflows\build-and-deploy.yml</NameOfLastUsedPublishProfile>
   </PropertyGroup>
 </Project>
