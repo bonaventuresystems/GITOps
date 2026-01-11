@@ -15,14 +15,13 @@ env:
   DOTNET_VERSION: '8.x'
   SOLUTION_PATH: 'GITOps.sln'
   API_PROJECT_PATH: 'DataProviderAPI'
-  PUBLISH_DIR: './publish'
 
 # Define the separate jobs that make up this workflow
 jobs:
   # First job: build and test the application
   build-and-test:
     name: Build and Test
-    runs-on: windows-latest # Use Ubuntu runner for this job
+    runs-on: windows-latest  # Windows for full .NET compatibility
 
     steps:
       - uses: actions/checkout@v4
@@ -32,35 +31,24 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore
+      - name: Restore dependencies
         run: dotnet restore ${{ env.SOLUTION_PATH }}
 
       - name: Build
-      run: dotnet build ${{ env.SOLUTION_PATH }}
-        --configuration Release
-        --no-restore
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test ${{ env.SOLUTION_PATH }}
-        --configuration Release
-        --no-restore
-        --no-build
-        --verbosity normal
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION_PATH }} --configuration Release --no-restore --no-build --verbosity normal
 
+      - name: Publish API
+        run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --no-restore --no-build --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-    - name: Publish
-      run: dotnet publish ${{ env.API_PROJECT_PATH }}
-        --configuration Release
-        --no-restore
-        --no-build
-        --property:PublishDir=${{ env.PUBLISH_DIR }}
-
-    # Store the published output as an artifact for later jobs
-    - name: Publish Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: webapp  # Name of the artifact
-        path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      # Store the published output as an artifact for later jobs
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   # Second job: deploy the application to Azure
   deploy:
@@ -77,10 +65,10 @@ jobs:
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       # Deploy to Azure App Service using publish profile credentials
-      - name: Deploy
-        uses: azure/webapps-deploy@v2
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3  # Updated to latest version
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           # Authentication credentials stored as a secret
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
